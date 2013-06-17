@@ -1,4 +1,5 @@
 package com.joffrey_bion.weka_parser;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,19 +33,12 @@ public class Main {
      * @param args
      */
     public static void main(String[] args) {
-        String[] str = "bla bla   bli:  blo".split(" +|: +");
-        for (String s : str) {
-            System.out.println(s);
-        }
-        if (args.length == 0) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    openWindow();
-                }
-            });
-            return;
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                openWindow();
+            }
+        });
     }
 
     private static void openWindow() {
@@ -55,7 +49,8 @@ public class Main {
             e.printStackTrace();
         }
         // file pickers source and destination
-        final JFilePickersPanel filePickers = new JFilePickersPanel("Weka model (text)", "Output file");
+        final JFilePickersPanel filePickers = new JFilePickersPanel("Weka model (text)",
+                "Output file");
         for (FilePicker fp : filePickers.getInputFilePickers()) {
             fp.addFileTypeFilter(".txt", "Text file");
         }
@@ -74,7 +69,7 @@ public class Main {
         frame.pack();
         frame.setVisible(true);
     }
-    
+
     private static void process(String wekaFilePath, String outputPath, Logger log) {
         if (wekaFilePath == null || wekaFilePath.equals("")) {
             log.printErr("No input file specified");
@@ -83,23 +78,28 @@ public class Main {
             log.printErr("No output file specified");
         }
         try {
+            log.println("Opening file '" + wekaFilePath + "'...");
             BufferedReader reader = new BufferedReader(new FileReader(wekaFilePath));
+            log.println("Parsing lines...");
             LinkedList<TreeLine> lines = new LinkedList<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(new TreeLine(line));
             }
             reader.close();
+            log.println("Creating tree...");
             Tree tree = Tree.createTree(lines);
+            log.println("Writing XML output file...");
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             try {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
                 Document doc = documentBuilder.newDocument();
-                doc.appendChild(treeToXml(doc, tree));
+                doc.appendChild(treeToXml(doc, tree, "root"));
                 writeXml(outputPath, doc);
             } catch (ParserConfigurationException e) {
                 e.printStackTrace();
             }
+            log.println("XML successfully written in '" + outputPath + "'");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             log.printErr(e.getMessage());
@@ -108,7 +108,7 @@ public class Main {
             log.printErr(e.getMessage());
         }
     }
-    
+
     private static void writeXml(String filePath, Document doc) {
         try {
             Transformer tr = TransformerFactory.newInstance().newTransformer();
@@ -127,18 +127,18 @@ public class Main {
             System.out.println(ioe.getMessage());
         }
     }
-    
-    private static Element treeToXml(Document doc, Tree tree) {
-        Element elt;
+
+    private static Element treeToXml(Document doc, Tree tree, String side) {
+        Element elt = doc.createElement(side);
         if (tree.isLeaf()) {
-            elt = doc.createElement("leaf");
+            elt.setAttribute("type", "leaf");
             elt.setAttribute("level", tree.getLevel());
         } else {
-            elt = doc.createElement("node");
+            elt.setAttribute("type", "node");
             elt.setAttribute("feature", tree.getFeature());
             elt.setAttribute("threshold", tree.getThreshold().toString());
-            elt.appendChild(treeToXml(doc, tree.getLeft()));
-            elt.appendChild(treeToXml(doc, tree.getRight()));
+            elt.appendChild(treeToXml(doc, tree.getLeft(), "left"));
+            elt.appendChild(treeToXml(doc, tree.getRight(), "right"));
         }
         return elt;
     }
