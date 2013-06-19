@@ -1,69 +1,122 @@
 package com.joffrey_bion.weka_parser;
+
 import java.util.LinkedList;
 
+/**
+ * A {@code Tree} object can be viewed as a subtree of a decision tree. It is either
+ * an internal node or a leaf.
+ * <p>
+ * If it is a leaf, then it represents a level of activity. If it is an internal
+ * node, then it represents a feature that has to be compared to a threshold.
+ * </p>
+ * <p>
+ * On a given sample, if the specified feature of the sample is lower than or equal
+ * to the threshold, then we move to the left (low) son. Otherwise, we move to the
+ * right (high) son. Anyway, we carry on until a leaf is reached, giving the level of
+ * activity corresponding to the tested sample.
+ * </p>
+ * 
+ * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
+ */
 public class Tree {
 
     private boolean isLeaf;
     private String level;
 
-    private Tree left;
-    private Tree right;
+    private Tree lowSon;
+    private Tree highSon;
     private String feature;
     private Double threshold;
 
+    /**
+     * Creates a new leaf.
+     * 
+     * @param level
+     *            The level of activity associated with this leaf.
+     */
     private Tree(String level) {
         this.isLeaf = true;
         this.level = level;
     }
 
+    /**
+     * Creates a new internal node.
+     * 
+     * @param feature
+     *            The String representing the feature that has to be tested.
+     * @param threshold
+     *            The threshold to choose between lowSon or highSon. If the feature
+     *            is less than or equal to the threshold, then the lowSon has to be
+     *            considered, otherwise the highSon branch is followed.
+     */
     private Tree(String feature, double threshold) {
         this.isLeaf = false;
         this.feature = feature;
         this.threshold = threshold;
-        this.left = null;
-        this.right = null;
+        this.lowSon = null;
+        this.highSon = null;
     }
 
+    /**
+     * Creates a {@code Tree} according to the given parsed {@link TreeLine}s.
+     * 
+     * @param lines
+     *            The {@code TreeLine}s that were read in the Weka file, and parsed.
+     * @return A {@code Tree} corresponding to these lines.
+     */
     public static Tree createTree(LinkedList<TreeLine> lines) {
         if (lines == null || lines.size() == 0) {
             throw new IllegalArgumentException("The list cannot be null or empty");
         }
+        // there are no actual nodes in the Weka file, just the 2 sons, starting with
+        // the left one
         TreeLine first = lines.pollFirst();
-        if (!first.isLeft()) {
-            throw new RuntimeException("There should be a left side first");
+        if (!first.isLowSon()) {
+            throw new RuntimeException("There should be a left (<=) side first");
         }
         Tree tree = new Tree(first.getFeature(), first.getThreshold());
-        LinkedList<TreeLine> leftChildren = null, rightChildren = null;
+        // These lists don't need to be initialized if the corresponding son is a
+        // leaf.
+        LinkedList<TreeLine> leftDescendantsLines = null, rightDescendantsLines = null;
         boolean addLeft;
         if (first.hasLeaf()) {
-            tree.left = new Tree(first.getLevel());
+            // the left side is a leaf, no left descendants to store
+            tree.lowSon = new Tree(first.getLevel());
             addLeft = false;
         } else {
-            leftChildren = new LinkedList<>();
+            // the left side is an internal node so we expect left descendants
+            leftDescendantsLines = new LinkedList<>();
             addLeft = true;
         }
         for (TreeLine line : lines) {
+            // we stop adding left descendants when we find the matching right
+            // sibling
             if (line.matches(first)) {
                 addLeft = false;
                 if (line.hasLeaf()) {
-                    tree.right = new Tree(line.getLevel());
+                    // the matching right sibling is a leaf, no right descendants
+                    tree.highSon = new Tree(line.getLevel());
                     break;
                 } else {
-                    rightChildren = new LinkedList<>();
+                    // the matching right sibling is an internal node
+                    rightDescendantsLines = new LinkedList<>();
                     continue;
                 }
             }
             if (addLeft) {
-                leftChildren.add(line);
-            } else if (rightChildren != null) {
-                rightChildren.add(line);
+                // we are in the left descendants
+                leftDescendantsLines.add(line);
+            } else if (rightDescendantsLines != null) {
+                // we are in the right descendants
+                rightDescendantsLines.add(line);
             }
         }
-        if (tree.left == null) {
-            tree.left = createTree(leftChildren);
+        // recursive calls on the descendants if the sons are not leaves
+        if (tree.lowSon == null) {
+            tree.lowSon = createTree(leftDescendantsLines);
         }
-        if (tree.right == null) {
-            tree.right = createTree(rightChildren);
+        if (tree.highSon == null) {
+            tree.highSon = createTree(rightDescendantsLines);
         }
         return tree;
     }
@@ -76,12 +129,12 @@ public class Tree {
         return level;
     }
 
-    public Tree getLeft() {
-        return left;
+    public Tree getLowSon() {
+        return lowSon;
     }
 
-    public Tree getRight() {
-        return right;
+    public Tree getHighSon() {
+        return highSon;
     }
 
     public String getFeature() {

@@ -22,25 +22,48 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.joffrey_bion.file_processor_window.ConsoleLogger;
 import com.joffrey_bion.file_processor_window.FilePicker;
 import com.joffrey_bion.file_processor_window.JFilePickersPanel;
 import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
 import com.joffrey_bion.file_processor_window.Logger;
 
-public class Main {
+/**
+ * This program parses Weka's output tree and writes it to an XML file representing
+ * the same decision tree.
+ * 
+ * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
+ */
+public class WekaOutputParser {
+
+    private static final int ARG_SOURCE = 0;
+    private static final int ARG_DEST = 1;
 
     /**
+     * Choose between GUI or console version according to the number of arguments.
+     * 
      * @param args
+     *            No arguments will start the GUI, otherwise two filenames have to be
+     *            specified: source, then destination.
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                openWindow();
-            }
-        });
+        if (args.length == 0) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    openWindow();
+                }
+            });
+        } else if (args.length == 2) {
+            process(args[ARG_SOURCE], args[ARG_DEST], new ConsoleLogger());
+        } else {
+            System.out.println("Usage: WekaOutputParser.jar <source-file> <dest-file>");
+        }
     }
 
+    /**
+     * Starts the GUI.
+     */
     private static void openWindow() {
         // windows system look and feel for the window
         try {
@@ -63,19 +86,32 @@ public class Main {
             @Override
             public void process(String[] inPaths, String[] outPaths) {
                 this.clearLog();
-                Main.process(inPaths[0], outPaths[0], this);
+                WekaOutputParser.process(inPaths[0], outPaths[0], this);
             }
         };
         frame.pack();
         frame.setVisible(true);
     }
 
+    /**
+     * Parses the given Weka output and writes it to an XML file representing a
+     * decision tree.
+     * 
+     * @param wekaFilePath
+     *            The path to the input Weka file.
+     * @param outputPath
+     *            The path to the output XML file.
+     * @param log
+     *            A {@link Logger} to display the log messages.
+     */
     private static void process(String wekaFilePath, String outputPath, Logger log) {
         if (wekaFilePath == null || wekaFilePath.equals("")) {
             log.printErr("No input file specified");
+            return;
         }
         if (outputPath == null || outputPath.equals("")) {
             log.printErr("No output file specified");
+            return;
         }
         try {
             log.println("Opening file '" + wekaFilePath + "'...");
@@ -100,6 +136,9 @@ public class Main {
                 e.printStackTrace();
             }
             log.println("XML successfully written in '" + outputPath + "'");
+        } catch (TransformerException e) {
+            e.printStackTrace();
+            log.printErr(e.getMessage());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             log.printErr(e.getMessage());
@@ -109,27 +148,19 @@ public class Main {
         }
     }
 
-    private static void writeXml(String filePath, Document doc) {
-        try {
-            Transformer tr = TransformerFactory.newInstance().newTransformer();
-            tr.setOutputProperty(OutputKeys.INDENT, "yes");
-            tr.setOutputProperty(OutputKeys.METHOD, "xml");
-            tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-            // send DOM to file
-            FileOutputStream fos = new FileOutputStream(filePath);
-            tr.transform(new DOMSource(doc), new StreamResult(fos));
-            fos.close();
-            System.out.println("Parameters saved.");
-        } catch (TransformerException te) {
-            System.out.println(te.getMessage());
-        } catch (IOException ioe) {
-            System.out.println(ioe.getMessage());
-        }
-    }
-
-    private static Element treeToXml(Document doc, Tree tree, String side) {
-        Element elt = doc.createElement(side);
+    /**
+     * Converts the specified {@link Tree} into an XML {@link Element}.
+     * 
+     * @param doc
+     *            The {@code Document} the returned {@code Element} will be part of.
+     * @param tree
+     *            The {@code Tree} to convert.
+     * @param tagName
+     *            The tag name of the created element.
+     * @return An XML {@code Element} representing the specified {@code Tree}.
+     */
+    private static Element treeToXml(Document doc, Tree tree, String tagName) {
+        Element elt = doc.createElement(tagName);
         if (tree.isLeaf()) {
             elt.setAttribute("type", "leaf");
             elt.setAttribute("level", tree.getLevel());
@@ -137,9 +168,32 @@ public class Main {
             elt.setAttribute("type", "node");
             elt.setAttribute("feature", tree.getFeature());
             elt.setAttribute("threshold", tree.getThreshold().toString());
-            elt.appendChild(treeToXml(doc, tree.getLeft(), "left"));
-            elt.appendChild(treeToXml(doc, tree.getRight(), "right"));
+            elt.appendChild(treeToXml(doc, tree.getLowSon(), "left"));
+            elt.appendChild(treeToXml(doc, tree.getHighSon(), "right"));
         }
         return elt;
+    }
+
+    /**
+     * Writes the specified {@link Document} to the specified file.
+     * 
+     * @param filePath
+     *            The path to the output file.
+     * @param doc
+     *            The {@code Document} to write.
+     * @throws TransformerException
+     * @throws IOException
+     */
+    private static void writeXml(String filePath, Document doc) throws TransformerException,
+            IOException {
+        Transformer tr = TransformerFactory.newInstance().newTransformer();
+        tr.setOutputProperty(OutputKeys.INDENT, "yes");
+        tr.setOutputProperty(OutputKeys.METHOD, "xml");
+        tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        // send DOM to file
+        FileOutputStream fos = new FileOutputStream(filePath);
+        tr.transform(new DOMSource(doc), new StreamResult(fos));
+        fos.close();
     }
 }
