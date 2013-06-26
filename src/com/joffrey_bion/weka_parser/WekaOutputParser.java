@@ -32,6 +32,10 @@ import com.joffrey_bion.file_processor_window.Logger;
  * This program parses Weka's output tree and writes it to an XML file representing
  * the same decision tree. It is designed to parse decision trees with continuous
  * attributes only (each accepting a threshold).
+ * <p>
+ * <b>Important:</b> make sure all attributes names (including the class attribute
+ * name and values) do not contain spaces.
+ * </p>
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
  */
