@@ -30,7 +30,8 @@ import com.joffrey_bion.file_processor_window.Logger;
 
 /**
  * This program parses Weka's output tree and writes it to an XML file representing
- * the same decision tree.
+ * the same decision tree. It is designed to parse decision trees with continuous
+ * attributes only (each accepting a threshold).
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
  */
@@ -38,6 +39,16 @@ public class WekaOutputParser {
 
     private static final int ARG_SOURCE = 0;
     private static final int ARG_DEST = 1;
+
+    private static final String TYPE_LEAF = "leaf";
+    private static final String TYPE_NODE = "node";
+    private static final String ATT_NODE_TYPE = "type";
+    private static final String ATT_CLASS = "class";
+    private static final String ATT_FEATURE = "feature";
+    private static final String ATT_THRESHOLD = "threshold";
+    private static final String TAG_ROOT = "root";
+    private static final String TAG_LEFT_SON = "left";
+    private static final String TAG_RIGHT_SON = "right";
 
     /**
      * Choose between GUI or console version according to the number of arguments.
@@ -130,7 +141,7 @@ public class WekaOutputParser {
             try {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
                 Document doc = documentBuilder.newDocument();
-                doc.appendChild(treeToXml(doc, tree, "root"));
+                doc.appendChild(treeToXml(doc, tree, TAG_ROOT));
                 writeXml(outputPath, doc);
             } catch (ParserConfigurationException e) {
                 e.printStackTrace();
@@ -162,14 +173,14 @@ public class WekaOutputParser {
     private static Element treeToXml(Document doc, Tree tree, String tagName) {
         Element elt = doc.createElement(tagName);
         if (tree.isLeaf()) {
-            elt.setAttribute("type", "leaf");
-            elt.setAttribute("level", tree.getLevel());
+            elt.setAttribute(ATT_NODE_TYPE, TYPE_LEAF);
+            elt.setAttribute(ATT_CLASS, tree.getClassAttribute());
         } else {
-            elt.setAttribute("type", "node");
-            elt.setAttribute("feature", tree.getFeature());
-            elt.setAttribute("threshold", tree.getThreshold().toString());
-            elt.appendChild(treeToXml(doc, tree.getLowSon(), "left"));
-            elt.appendChild(treeToXml(doc, tree.getHighSon(), "right"));
+            elt.setAttribute(ATT_NODE_TYPE, TYPE_NODE);
+            elt.setAttribute(ATT_FEATURE, tree.getFeature());
+            elt.setAttribute(ATT_THRESHOLD, tree.getThreshold().toString());
+            elt.appendChild(treeToXml(doc, tree.getLowSon(), TAG_LEFT_SON));
+            elt.appendChild(treeToXml(doc, tree.getHighSon(), TAG_RIGHT_SON));
         }
         return elt;
     }

@@ -6,14 +6,14 @@ import java.util.LinkedList;
  * A {@code Tree} object can be viewed as a subtree of a decision tree. It is either
  * an internal node or a leaf.
  * <p>
- * If it is a leaf, then it represents a level of activity. If it is an internal
- * node, then it represents a feature that has to be compared to a threshold.
+ * If it is a leaf, then it represents a class. If it is an internal node, then it
+ * represents a feature that has to be compared to a threshold.
  * </p>
  * <p>
  * On a given sample, if the specified feature of the sample is lower than or equal
  * to the threshold, then we move to the left (low) son. Otherwise, we move to the
- * right (high) son. Anyway, we carry on until a leaf is reached, giving the level of
- * activity corresponding to the tested sample.
+ * right (high) son. Anyway, we carry on until a leaf is reached, giving the
+ * class of the tested sample.
  * </p>
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
@@ -21,7 +21,7 @@ import java.util.LinkedList;
 public class Tree {
 
     private boolean isLeaf;
-    private String level;
+    private String classAttribute;
 
     private Tree lowSon;
     private Tree highSon;
@@ -31,12 +31,12 @@ public class Tree {
     /**
      * Creates a new leaf.
      * 
-     * @param level
-     *            The level of activity associated with this leaf.
+     * @param classAttribute
+     *            The class associated with this leaf.
      */
-    private Tree(String level) {
+    private Tree(String classAttribute) {
         this.isLeaf = true;
-        this.level = level;
+        this.classAttribute = classAttribute;
     }
 
     /**
@@ -79,9 +79,9 @@ public class Tree {
         // leaf.
         LinkedList<TreeLine> leftDescendantsLines = null, rightDescendantsLines = null;
         boolean addLeft;
-        if (first.hasLeaf()) {
+        if (first.isLeaf()) {
             // the left side is a leaf, no left descendants to store
-            tree.lowSon = new Tree(first.getLevel());
+            tree.lowSon = new Tree(first.getClassAttribute());
             addLeft = false;
         } else {
             // the left side is an internal node so we expect left descendants
@@ -93,9 +93,9 @@ public class Tree {
             // sibling
             if (line.matches(first)) {
                 addLeft = false;
-                if (line.hasLeaf()) {
+                if (line.isLeaf()) {
                     // the matching right sibling is a leaf, no right descendants
-                    tree.highSon = new Tree(line.getLevel());
+                    tree.highSon = new Tree(line.getClassAttribute());
                     break;
                 } else {
                     // the matching right sibling is an internal node
@@ -125,8 +125,8 @@ public class Tree {
         return isLeaf;
     }
 
-    public String getLevel() {
-        return level;
+    public String getClassAttribute() {
+        return classAttribute;
     }
 
     public Tree getLowSon() {

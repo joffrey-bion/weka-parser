@@ -11,8 +11,9 @@ package com.joffrey_bion.weka_parser;
  * starts with the first (left) son of the root.
  * </p>
  * <p>
- * Some of the lines also contain a leaf representing a level of activity, which
- * means that the internal node's son they represent is actually this leaf.
+ * Some of the lines also contain a leaf representing the class to give when reaching
+ * this end of the tree. In this case, the internal node's son represented by this
+ * {@code TreeLine} is actually a leaf.
  * </p>
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
@@ -23,8 +24,8 @@ public class TreeLine {
     private String feature;
     private double threshold;
 
-    private boolean hasLeaf;
-    private String level;
+    private boolean isLeaf;
+    private String classAttribute;
 
     /**
      * Creates a parsed {@code TreeLine} object from the plain {@code String}
@@ -35,7 +36,7 @@ public class TreeLine {
      */
     public TreeLine(String line) {
         // spaces separate the '|', features, operators and thresholds.
-        // colons separate a threshold from a level
+        // colons separate a threshold from a class
         String[] words = line.split(" +|: +");
         // computing the depth of the node, to know where to start in the string
         int depth = 0;
@@ -51,16 +52,16 @@ public class TreeLine {
         threshold = Double.parseDouble(words[depth + 2]);
         // check whether there is also a leaf at the end of the line
         if (words.length > depth + 3) {
-            hasLeaf = true;
-            level = words[depth + 3];
+            isLeaf = true;
+            classAttribute = words[depth + 3];
         } else {
-            hasLeaf = false;
-            level = null;
+            isLeaf = false;
+            classAttribute = null;
         }
     }
 
     /**
-     * Tells whether operator is '{@code <=}' or '{@code >}'.
+     * Tells whether {@code operator} is '{@code <=}' or '{@code >}'.
      * 
      * @param operator
      *            One of '{@code <=}' or '{@code >}'.
@@ -109,25 +110,30 @@ public class TreeLine {
     /**
      * Returns whether this line contains a leaf or not.
      * 
-     * @return Whether this line contains a leaf or not.
+     * @return Whether the internal node's son represented by this {@code TreeLine}
+     *         is a leaf.
      */
-    public boolean hasLeaf() {
-        return hasLeaf;
+    public boolean isLeaf() {
+        return isLeaf;
     }
 
     /**
-     * Returns the level associated with the leaf contained in this line (if any).
-     * You can use {@link #hasLeaf()} to ensure that.
+     * Returns the class associated with the leaf contained in this line (if any).
+     * You can use {@link #isLeaf()} to ensure that.
      * 
-     * @return The level represented by the leaf, or null if this line does not contain
-     *         a leaf.
+     * @return The class represented by the leaf, or null if this line does not
+     *         contain a leaf.
      */
-    public String getLevel() {
-        return level;
+    public String getClassAttribute() {
+        return classAttribute;
     }
 
     /**
      * Returns whether the specified line is the corresponding sibling of this line.
+     * If this {@code TreeLine} is the left (respectively right) son of an internal
+     * node, and {@code line} is the right (respectively left) son of the same
+     * internal node, this method returns {@code true}. In any other case, it returns
+     * false.
      * 
      * @param line
      *            The {@code TreeLine} to test.
