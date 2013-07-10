@@ -22,11 +22,11 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.joffrey_bion.file_processor_window.ConsoleLogger;
-import com.joffrey_bion.file_processor_window.FilePicker;
-import com.joffrey_bion.file_processor_window.JFilePickersPanel;
 import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
-import com.joffrey_bion.file_processor_window.Logger;
+import com.joffrey_bion.file_processor_window.file_picker.FilePicker;
+import com.joffrey_bion.file_processor_window.file_picker.JFilePickersPanel;
+import com.joffrey_bion.file_processor_window.logging.ConsoleLogger;
+import com.joffrey_bion.file_processor_window.logging.Logger;
 
 /**
  * This program parses Weka's output tree and writes it to an XML file representing
