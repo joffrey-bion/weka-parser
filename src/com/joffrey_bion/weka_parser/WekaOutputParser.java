@@ -25,8 +25,6 @@ import org.w3c.dom.Element;
 import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
 import com.joffrey_bion.file_processor_window.file_picker.FilePicker;
 import com.joffrey_bion.file_processor_window.file_picker.JFilePickersPanel;
-import com.joffrey_bion.file_processor_window.logging.ConsoleLogger;
-import com.joffrey_bion.file_processor_window.logging.Logger;
 
 /**
  * This program parses Weka's output tree and writes it to an XML file representing
@@ -70,7 +68,7 @@ public class WekaOutputParser {
                 }
             });
         } else if (args.length == 2) {
-            process(args[ARG_SOURCE], args[ARG_DEST], new ConsoleLogger());
+            process(args[ARG_SOURCE], args[ARG_DEST]);
         } else {
             System.out.println("Usage: WekaOutputParser.jar <source-file> <dest-file>");
         }
@@ -101,7 +99,7 @@ public class WekaOutputParser {
             @Override
             public void process(String[] inPaths, String[] outPaths) {
                 this.clearLog();
-                WekaOutputParser.process(inPaths[0], outPaths[0], this);
+                WekaOutputParser.process(inPaths[0], outPaths[0]);
             }
         };
         frame.pack();
@@ -116,31 +114,29 @@ public class WekaOutputParser {
      *            The path to the input Weka file.
      * @param outputPath
      *            The path to the output XML file.
-     * @param log
-     *            A {@link Logger} to display the log messages.
      */
-    private static void process(String wekaFilePath, String outputPath, Logger log) {
+    private static void process(String wekaFilePath, String outputPath) {
         if (wekaFilePath == null || wekaFilePath.equals("")) {
-            log.printErr("No input file specified");
+            System.err.println("No input file specified");
             return;
         }
         if (outputPath == null || outputPath.equals("")) {
-            log.printErr("No output file specified");
+            System.err.println("No output file specified");
             return;
         }
         try {
-            log.println("Opening file '" + wekaFilePath + "'...");
+            System.out.println("Opening file '" + wekaFilePath + "'...");
             BufferedReader reader = new BufferedReader(new FileReader(wekaFilePath));
-            log.println("Parsing lines...");
+            System.out.println("Parsing lines...");
             LinkedList<TreeLine> lines = new LinkedList<>();
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(new TreeLine(line));
             }
             reader.close();
-            log.println("Creating tree...");
+            System.out.println("Creating tree...");
             Tree tree = Tree.createTree(lines);
-            log.println("Writing XML output file...");
+            System.out.println("Writing XML output file...");
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             try {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -150,16 +146,13 @@ public class WekaOutputParser {
             } catch (ParserConfigurationException e) {
                 e.printStackTrace();
             }
-            log.println("XML successfully written in '" + outputPath + "'");
+            System.out.println("XML successfully written in '" + outputPath + "'");
         } catch (TransformerException e) {
-            e.printStackTrace();
-            log.printErr(e.getMessage());
+            System.err.println(e.getMessage());
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            log.printErr(e.getMessage());
+            System.err.println(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
-            log.printErr(e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
