@@ -2,7 +2,6 @@ package com.joffrey_bion.weka_parser;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -12,12 +11,6 @@ import javax.swing.UIManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -25,6 +18,7 @@ import org.w3c.dom.Element;
 import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
 import com.joffrey_bion.file_processor_window.file_picker.FilePicker;
 import com.joffrey_bion.file_processor_window.file_picker.JFilePickersPanel;
+import com.joffrey_bion.utils.xml_helper.XmlHelper;
 
 /**
  * This program parses Weka's output tree and writes it to an XML file representing
@@ -142,13 +136,11 @@ public class WekaOutputParser {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
                 Document doc = documentBuilder.newDocument();
                 doc.appendChild(treeToXml(doc, tree, TAG_ROOT));
-                writeXml(outputPath, doc);
+                XmlHelper.writeXml(outputPath, doc);
             } catch (ParserConfigurationException e) {
                 e.printStackTrace();
             }
             System.out.println("XML successfully written in '" + outputPath + "'");
-        } catch (TransformerException e) {
-            System.err.println(e.getMessage());
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {
@@ -180,28 +172,5 @@ public class WekaOutputParser {
             elt.appendChild(treeToXml(doc, tree.getHighSon(), TAG_RIGHT_SON));
         }
         return elt;
-    }
-
-    /**
-     * Writes the specified {@link Document} to the specified file.
-     * 
-     * @param filePath
-     *            The path to the output file.
-     * @param doc
-     *            The {@code Document} to write.
-     * @throws TransformerException
-     * @throws IOException
-     */
-    private static void writeXml(String filePath, Document doc) throws TransformerException,
-            IOException {
-        Transformer tr = TransformerFactory.newInstance().newTransformer();
-        tr.setOutputProperty(OutputKeys.INDENT, "yes");
-        tr.setOutputProperty(OutputKeys.METHOD, "xml");
-        tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        // send DOM to file
-        FileOutputStream fos = new FileOutputStream(filePath);
-        tr.transform(new DOMSource(doc), new StreamResult(fos));
-        fos.close();
     }
 }
