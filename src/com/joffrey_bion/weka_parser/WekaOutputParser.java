@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -72,12 +71,7 @@ public class WekaOutputParser {
      * Starts the GUI.
      */
     private static void openWindow() {
-        // windows system look and feel for the window
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        JFileProcessorWindow.setSystemLookAndFeel();
         // file pickers source and destination
         final JFilePickersPanel filePickers = new JFilePickersPanel("Weka model (text)",
                 "Output file");
