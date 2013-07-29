@@ -18,7 +18,7 @@ package com.joffrey_bion.weka_parser;
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
  */
-public class TreeLine {
+class TreeLine {
 
     private boolean isLowSon;
     private String feature;

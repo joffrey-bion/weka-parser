@@ -18,7 +18,7 @@ import java.util.LinkedList;
  * 
  * @author <a href="mailto:joffrey.bion@gmail.com">Joffrey BION</a>
  */
-public class Tree {
+class Tree {
 
     private boolean isLeaf;
     private String classAttribute;

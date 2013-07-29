@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import javax.swing.SwingUtilities;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -17,7 +14,7 @@ import org.w3c.dom.Element;
 import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
 import com.joffrey_bion.file_processor_window.file_picker.FilePicker;
 import com.joffrey_bion.file_processor_window.file_picker.JFilePickersPanel;
-import com.joffrey_bion.utils.xml_helper.XmlHelper;
+import com.joffrey_bion.utils.xml.XmlHelper;
 
 /**
  * This program parses Weka's output tree and writes it to an XML file representing
@@ -125,15 +122,9 @@ public class WekaOutputParser {
             System.out.println("Creating tree...");
             Tree tree = Tree.createTree(lines);
             System.out.println("Writing XML output file...");
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            try {
-                DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                Document doc = documentBuilder.newDocument();
-                doc.appendChild(treeToXml(doc, tree, TAG_ROOT));
-                XmlHelper.writeXml(outputPath, doc);
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-            }
+            Document doc = XmlHelper.createEmptyDomDocument();
+            doc.appendChild(treeToXml(doc, tree, TAG_ROOT));
+            XmlHelper.writeXml(outputPath, doc);
             System.out.println("XML successfully written in '" + outputPath + "'");
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
