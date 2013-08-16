@@ -11,9 +11,10 @@ import javax.swing.SwingUtilities;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.joffrey_bion.file_processor_window.JFileProcessorWindow;
-import com.joffrey_bion.file_processor_window.file_picker.FilePicker;
-import com.joffrey_bion.file_processor_window.file_picker.JFilePickersPanel;
+import com.joffrey_bion.generic_guis.LookAndFeel;
+import com.joffrey_bion.generic_guis.file_picker.FilePicker;
+import com.joffrey_bion.generic_guis.file_picker.JFilePickersPanel;
+import com.joffrey_bion.generic_guis.file_processor.JFileProcessorWindow;
 import com.joffrey_bion.utils.xml.XmlHelper;
 
 /**
@@ -68,7 +69,7 @@ public class WekaOutputParser {
      * Starts the GUI.
      */
     private static void openWindow() {
-        JFileProcessorWindow.setSystemLookAndFeel();
+        LookAndFeel.setSystemLookAndFeel();
         // file pickers source and destination
         final JFilePickersPanel filePickers = new JFilePickersPanel("Weka model (text)",
                 "Output file");
