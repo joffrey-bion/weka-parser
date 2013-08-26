@@ -80,10 +80,10 @@ public class WekaOutputParser {
             fp.addFileTypeFilter(".xml", "XML file");
         }
         @SuppressWarnings("serial")
-        JFileProcessorWindow frame = new JFileProcessorWindow("Weka to XML converter", "Convert",
-                filePickers, null) {
+        JFileProcessorWindow frame = new JFileProcessorWindow("Weka to XML converter", filePickers,
+                null, "Convert") {
             @Override
-            public void process(String[] inPaths, String[] outPaths) {
+            public void process(String[] inPaths, String[] outPaths, int processBtnIndex) {
                 this.clearLog();
                 WekaOutputParser.process(inPaths[0], outPaths[0]);
             }
